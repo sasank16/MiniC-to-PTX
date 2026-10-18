@@ -27,6 +27,7 @@ set(MINIC_LIB_SOURCES
     src/lexer/Lexer.cpp
     src/ast/ASTDumper.cpp
     src/parser/Parser.cpp
+    src/semantic/SemanticAnalyzer.cpp
 )
 
 add_library(minic_lib STATIC ${MINIC_LIB_SOURCES})
@@ -50,3 +51,7 @@ add_test(NAME LexerTests COMMAND test_lexer)
 add_executable(test_parser tests/unit/test_parser.cpp tests/test_runner.cpp)
 target_link_libraries(test_parser PRIVATE minic_lib)
 add_test(NAME ParserTests COMMAND test_parser)
+
+add_executable(test_semantic tests/unit/test_semantic.cpp tests/test_runner.cpp)
+target_link_libraries(test_semantic PRIVATE minic_lib)
+add_test(NAME SemanticTests COMMAND test_semantic)

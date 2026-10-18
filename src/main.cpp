@@ -2,6 +2,7 @@
 #include "minic/lexer/Lexer.hpp"
 #include "minic/parser/Parser.hpp"
 #include "minic/ast/ASTDumper.hpp"
+#include "minic/semantic/SemanticAnalyzer.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -121,6 +122,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Run Semantic Analysis
+    minic::semantic::SemanticAnalyzer sema(diag);
+    if (!sema.analyze(*program)) {
+        diag.printAll(std::cerr);
+        return 1;
+    }
+
     if (emitAST) {
         if (!outputFile.empty()) {
             std::ofstream out(outputFile);
@@ -137,8 +145,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    // Default notice until subsequent milestones lower to IR and PTX
-    std::cout << "// Parsed program successfully with " 
+    std::cout << "// Parsed and verified program successfully with " 
               << program->functions().size() << " function(s).\n";
 
     return 0;
