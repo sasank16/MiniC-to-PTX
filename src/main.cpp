@@ -1,4 +1,7 @@
 #include "minic/common/Diagnostic.hpp"
+#include "minic/lexer/Lexer.hpp"
+#include "minic/parser/Parser.hpp"
+#include "minic/ast/ASTDumper.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -99,18 +102,44 @@ int main(int argc, char* argv[]) {
     buffer << file.rdbuf();
     std::string source = buffer.str();
 
-    (void)emitAST;
     (void)emitIR;
     (void)emitPTX;
     (void)emitCFGDot;
+    (void)optimize;
     (void)validatePTX;
+    (void)targetType;
+    (void)arch;
 
     minic::DiagnosticEngine diag(source, inputFile);
+    minic::Lexer lexer(source, inputFile, diag);
+    minic::parser::Parser parser(lexer, diag);
 
-    std::cout << "MiniC-to-PTX v0.1.0 initialized successfully.\n"
-              << "Processing file: " << inputFile << " (" << source.size() << " bytes)\n"
-              << "Configuration: Target=" << targetType << ", Arch=" << arch 
-              << ", Optimize=" << (optimize ? "true" : "false") << "\n";
+    auto program = parser.parseProgram();
+
+    if (diag.hasErrors()) {
+        diag.printAll(std::cerr);
+        return 1;
+    }
+
+    if (emitAST) {
+        if (!outputFile.empty()) {
+            std::ofstream out(outputFile);
+            if (!out.is_open()) {
+                std::cerr << "Error: Could not open output file '" << outputFile << "'\n";
+                return 1;
+            }
+            minic::ast::ASTDumper dumper(out);
+            dumper.dump(*program);
+        } else {
+            minic::ast::ASTDumper dumper(std::cout);
+            dumper.dump(*program);
+        }
+        return 0;
+    }
+
+    // Default notice until subsequent milestones lower to IR and PTX
+    std::cout << "// Parsed program successfully with " 
+              << program->functions().size() << " function(s).\n";
 
     return 0;
 }

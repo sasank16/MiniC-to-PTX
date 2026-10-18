@@ -24,6 +24,9 @@ include_directories(
 # Core compiler library sources
 set(MINIC_LIB_SOURCES
     src/common/Diagnostic.cpp
+    src/lexer/Lexer.cpp
+    src/ast/ASTDumper.cpp
+    src/parser/Parser.cpp
 )
 
 add_library(minic_lib STATIC ${MINIC_LIB_SOURCES})
@@ -36,8 +39,14 @@ target_link_libraries(minic PRIVATE minic_lib)
 # Testing
 enable_testing()
 
-add_executable(test_sanity
-    tests/unit/test_framework_sanity.cpp
-)
+add_executable(test_sanity tests/unit/test_framework_sanity.cpp)
 target_link_libraries(test_sanity PRIVATE minic_lib)
 add_test(NAME SanityTests COMMAND test_sanity)
+
+add_executable(test_lexer tests/unit/test_lexer.cpp tests/test_runner.cpp)
+target_link_libraries(test_lexer PRIVATE minic_lib)
+add_test(NAME LexerTests COMMAND test_lexer)
+
+add_executable(test_parser tests/unit/test_parser.cpp tests/test_runner.cpp)
+target_link_libraries(test_parser PRIVATE minic_lib)
+add_test(NAME ParserTests COMMAND test_parser)
