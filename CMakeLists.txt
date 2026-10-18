@@ -28,6 +28,8 @@ set(MINIC_LIB_SOURCES
     src/ast/ASTDumper.cpp
     src/parser/Parser.cpp
     src/semantic/SemanticAnalyzer.cpp
+    src/ir/Instruction.cpp
+    src/ir/IRBuilder.cpp
 )
 
 add_library(minic_lib STATIC ${MINIC_LIB_SOURCES})
@@ -55,3 +57,7 @@ add_test(NAME ParserTests COMMAND test_parser)
 add_executable(test_semantic tests/unit/test_semantic.cpp tests/test_runner.cpp)
 target_link_libraries(test_semantic PRIVATE minic_lib)
 add_test(NAME SemanticTests COMMAND test_semantic)
+
+add_executable(test_ir tests/unit/test_ir.cpp tests/test_runner.cpp)
+target_link_libraries(test_ir PRIVATE minic_lib)
+add_test(NAME IRTests COMMAND test_ir)

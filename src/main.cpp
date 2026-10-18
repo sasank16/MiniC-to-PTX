@@ -3,6 +3,7 @@
 #include "minic/parser/Parser.hpp"
 #include "minic/ast/ASTDumper.hpp"
 #include "minic/semantic/SemanticAnalyzer.hpp"
+#include "minic/ir/IRBuilder.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -145,8 +146,40 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    std::cout << "// Parsed and verified program successfully with " 
-              << program->functions().size() << " function(s).\n";
+    // Lower AST to Three-Address Code (TAC) IR
+    minic::ir::IRBuilder irBuilder(inputFile);
+    auto irModule = irBuilder.build(*program);
+
+    if (emitIR) {
+        if (!outputFile.empty()) {
+            std::ofstream out(outputFile);
+            if (!out.is_open()) {
+                std::cerr << "Error: Could not open output file '" << outputFile << "'\n";
+                return 1;
+            }
+            irModule->print(out);
+        } else {
+            irModule->print(std::cout);
+        }
+        return 0;
+    }
+
+    if (emitCFGDot) {
+        if (!outputFile.empty()) {
+            std::ofstream out(outputFile);
+            if (!out.is_open()) {
+                std::cerr << "Error: Could not open output file '" << outputFile << "'\n";
+                return 1;
+            }
+            irModule->printCFGDot(out);
+        } else {
+            irModule->printCFGDot(std::cout);
+        }
+        return 0;
+    }
+
+    std::cout << "; MiniC-to-PTX: IR generated for " 
+              << irModule->functions().size() << " function(s).\n";
 
     return 0;
 }
