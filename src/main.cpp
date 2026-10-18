@@ -4,6 +4,7 @@
 #include "minic/ast/ASTDumper.hpp"
 #include "minic/semantic/SemanticAnalyzer.hpp"
 #include "minic/ir/IRBuilder.hpp"
+#include "minic/optimizer/PassManager.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -149,6 +150,11 @@ int main(int argc, char* argv[]) {
     // Lower AST to Three-Address Code (TAC) IR
     minic::ir::IRBuilder irBuilder(inputFile);
     auto irModule = irBuilder.build(*program);
+
+    if (optimize) {
+        auto pm = minic::optimizer::PassManager::createDefaultPipeline();
+        pm.run(*irModule);
+    }
 
     if (emitIR) {
         if (!outputFile.empty()) {
