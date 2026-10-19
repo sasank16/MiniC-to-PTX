@@ -30,10 +30,12 @@ set(MINIC_LIB_SOURCES
     src/semantic/SemanticAnalyzer.cpp
     src/ir/Instruction.cpp
     src/ir/IRBuilder.cpp
+    src/ir/LivenessAnalysis.cpp
     src/optimizer/ConstantFoldingPass.cpp
     src/optimizer/DeadCodeEliminationPass.cpp
     src/optimizer/CSEPass.cpp
     src/optimizer/PassManager.cpp
+    src/codegen/LinearScanAllocator.cpp
     src/codegen/PTXEmitter.cpp
 )
 
@@ -74,3 +76,7 @@ add_test(NAME OptimizerTests COMMAND test_optimizer)
 add_executable(test_codegen tests/unit/test_codegen.cpp tests/test_runner.cpp)
 target_link_libraries(test_codegen PRIVATE minic_lib)
 add_test(NAME PTXCodegenTests COMMAND test_codegen)
+
+add_executable(test_liveness tests/unit/test_liveness.cpp tests/test_runner.cpp)
+target_link_libraries(test_liveness PRIVATE minic_lib)
+add_test(NAME LivenessTests COMMAND test_liveness)

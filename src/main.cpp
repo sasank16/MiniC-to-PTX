@@ -4,6 +4,7 @@
 #include "minic/ast/ASTDumper.hpp"
 #include "minic/semantic/SemanticAnalyzer.hpp"
 #include "minic/ir/IRBuilder.hpp"
+#include "minic/ir/LivenessAnalysis.hpp"
 #include "minic/optimizer/PassManager.hpp"
 #include "minic/codegen/PTXEmitter.hpp"
 #include <iostream>
@@ -23,6 +24,7 @@ void printUsage(const char* progName) {
               << "  --emit-ir           Emit Three-Address Code intermediate representation\n"
               << "  --emit-ptx          Emit PTX assembly (default)\n"
               << "  --emit-cfg-dot      Emit Control-Flow Graph in Graphviz DOT format\n"
+              << "  --emit-liveness     Emit liveness analysis report and register intervals\n"
               << "  --optimize, -O1     Enable compiler optimization passes\n"
               << "  --target=<type>     Target output type: 'func' (default) or 'kernel'\n"
               << "  --arch=<sm>         Target SM architecture (default: sm_70)\n"
@@ -44,6 +46,7 @@ int main(int argc, char* argv[]) {
     bool emitIR = false;
     bool emitPTX = true;
     bool emitCFGDot = false;
+    bool emitLiveness = false;
     bool optimize = false;
     bool validatePTX = false;
 
@@ -66,6 +69,9 @@ int main(int argc, char* argv[]) {
             emitPTX = true;
         } else if (arg == "--emit-cfg-dot") {
             emitCFGDot = true;
+            emitPTX = false;
+        } else if (arg == "--emit-liveness") {
+            emitLiveness = true;
             emitPTX = false;
         } else if (arg == "--optimize" || arg == "-O1") {
             optimize = true;
@@ -181,6 +187,27 @@ int main(int argc, char* argv[]) {
             irModule->printCFGDot(out);
         } else {
             irModule->printCFGDot(std::cout);
+        }
+        return 0;
+    }
+
+    if (emitLiveness) {
+        std::ostringstream oss;
+        for (const auto& fn : irModule->functions()) {
+            minic::ir::LivenessAnalysis liveness(*fn);
+            liveness.run();
+            liveness.printReport(oss);
+            oss << "\n";
+        }
+        if (!outputFile.empty()) {
+            std::ofstream out(outputFile);
+            if (!out.is_open()) {
+                std::cerr << "Error: Could not open output file '" << outputFile << "'\n";
+                return 1;
+            }
+            out << oss.str();
+        } else {
+            std::cout << oss.str();
         }
         return 0;
     }
