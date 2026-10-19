@@ -34,6 +34,7 @@ set(MINIC_LIB_SOURCES
     src/optimizer/DeadCodeEliminationPass.cpp
     src/optimizer/CSEPass.cpp
     src/optimizer/PassManager.cpp
+    src/codegen/PTXEmitter.cpp
 )
 
 add_library(minic_lib STATIC ${MINIC_LIB_SOURCES})
@@ -69,3 +70,7 @@ add_test(NAME IRTests COMMAND test_ir)
 add_executable(test_optimizer tests/unit/test_optimizer.cpp tests/test_runner.cpp)
 target_link_libraries(test_optimizer PRIVATE minic_lib)
 add_test(NAME OptimizerTests COMMAND test_optimizer)
+
+add_executable(test_codegen tests/unit/test_codegen.cpp tests/test_runner.cpp)
+target_link_libraries(test_codegen PRIVATE minic_lib)
+add_test(NAME PTXCodegenTests COMMAND test_codegen)

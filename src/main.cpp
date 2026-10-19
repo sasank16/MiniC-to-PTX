@@ -5,6 +5,7 @@
 #include "minic/semantic/SemanticAnalyzer.hpp"
 #include "minic/ir/IRBuilder.hpp"
 #include "minic/optimizer/PassManager.hpp"
+#include "minic/codegen/PTXEmitter.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -184,8 +185,44 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    std::cout << "; MiniC-to-PTX: IR generated for " 
-              << irModule->functions().size() << " function(s).\n";
+    if (emitPTX) {
+        bool isKernelTarget = (targetType == "kernel");
+        minic::codegen::PTXTarget target(arch, isKernelTarget, "7.0");
+        minic::codegen::PTXEmitter emitter(target);
+
+        std::string ptxOutput;
+        std::ostringstream oss;
+        emitter.emitModule(*irModule, oss);
+        ptxOutput = oss.str();
+
+        if (!outputFile.empty()) {
+            std::ofstream out(outputFile);
+            if (!out.is_open()) {
+                std::cerr << "Error: Could not open output file '" << outputFile << "'\n";
+                return 1;
+            }
+            out << ptxOutput;
+        } else {
+            std::cout << ptxOutput;
+        }
+
+        if (validatePTX) {
+            std::string tempFile = outputFile.empty() ? "temp_output.ptx" : outputFile;
+            if (outputFile.empty()) {
+                std::ofstream tempOut(tempFile);
+                tempOut << ptxOutput;
+            }
+            std::string pyCmd = "python scripts/validate_ptx.py " + tempFile + " --arch=" + arch;
+            int ret = std::system(pyCmd.c_str());
+            if (outputFile.empty() && std::ifstream(tempFile).good()) {
+                std::remove(tempFile.c_str());
+            }
+            if (ret != 0) {
+                return 1;
+            }
+        }
+        return 0;
+    }
 
     return 0;
 }
