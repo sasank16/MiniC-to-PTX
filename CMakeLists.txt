@@ -80,3 +80,7 @@ add_test(NAME PTXCodegenTests COMMAND test_codegen)
 add_executable(test_liveness tests/unit/test_liveness.cpp tests/test_runner.cpp)
 target_link_libraries(test_liveness PRIVATE minic_lib)
 add_test(NAME LivenessTests COMMAND test_liveness)
+
+add_executable(test_end_to_end tests/integration/test_end_to_end.cpp tests/test_runner.cpp)
+target_link_libraries(test_end_to_end PRIVATE minic_lib)
+add_test(NAME IntegrationEndToEndTests COMMAND test_end_to_end)
